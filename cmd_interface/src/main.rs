@@ -1,3 +1,5 @@
+use record_keeper;
+
 fn main() {
-    println!("Hello, world!");
+    record_keeper::print_hello();
 }

@@ -1,6 +1,9 @@
 [[package]]
 name = "cmd_interface"
 version = "0.1.0"
+dependencies = [
+ "record_keeper 0.1.0",
+]
 
 [[package]]
 name = "record_keeper"

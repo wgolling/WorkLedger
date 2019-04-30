@@ -1,3 +1,7 @@
+pub fn print_hello() {
+    println!("Hello, world!");
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
