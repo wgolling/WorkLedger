@@ -1,5 +1,7 @@
+mod record;
+
 pub fn print_hello() {
-    println!("Hello, world!");
+    record::print_hello();
 }
 
 #[cfg(test)]
