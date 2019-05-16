@@ -12,11 +12,14 @@ fn program_loop() {
         io::stdin().read_line(&mut command)
             .expect("Failed to read line.");
 
+        command = command.trim().to_string();
+
         println!("Your command: {}", &command);
 
         // Pass the command to the menu.
-        if !menu::parse_command(command) {
-            break;
+        match menu::parse_command(command) {
+            Some(s) => println!("{}", s),
+            None    => break,
         }
 
         // End of loop.
