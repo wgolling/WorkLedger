@@ -5,8 +5,13 @@ use record_keeper;
 mod menu;
 
 fn program_loop() {
-    println!("Please input a command.");
+    // Initialize menu engine
+    let mut me = menu::Engine::new();
+
     loop {
+        // Display menu.
+        me.prompt();
+
         // Try to store user input in a String.
         let mut command = String::new();
         io::stdin().read_line(&mut command)
@@ -16,14 +21,13 @@ fn program_loop() {
 
         println!("Your command: {}", &command);
 
-        // Pass the command to the menu.
-        match menu::parse_command(command) {
+        // Pass the command to the menu engine.
+        match me.parse_command(command) {
             Some(s) => println!("{}", s),
             None    => break,
         }
 
         // End of loop.
-        println!("Please input a new command.");
     }
 }
 
