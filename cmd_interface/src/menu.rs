@@ -8,8 +8,8 @@ impl Engine {
         }
     }
 
-    pub fn prompt(&self) {
-        self.menu.prompt();
+    pub fn display(&self) {
+        self.menu.display();
     }
     pub fn parse_command(&mut self, command: String) -> Option<String> {
         match (*self.menu).parse_command(command) {
@@ -32,15 +32,40 @@ enum Command {
 }
 
 trait Menu {
-    fn prompt(&self);
+    fn display(&self);
     fn parse_command(&self, command: String) -> Command;
+}
+
+struct Clients {
+    clients: Vec<String>,
+}
+impl Clients {
+    pub fn new() -> Clients {
+        Clients {
+            clients: Vec::new(),
+        }
+    }
+}
+impl Menu for Clients {
+    fn display(&self) {
+        println!("\nThis is the Clients Menu.");
+        println!("Please select one of the following clients:");
+    }
+    fn parse_command(&self, command: String) -> Command {
+        match command.trim().to_lowercase().as_str() {
+            "hello"     => Command::Print(MainMenu::hello()),
+            "quit"      => Command::Quit,
+            "change"    => Command::Change(Box::new(SubMenu::new())),
+            _           => Command::Error,
+        }
+    }        
 }
 
 struct MainMenu {
     // dunno what it's going to have for fields yet.
 }
 impl Menu for MainMenu {
-    fn prompt(&self) {
+    fn display(&self) {
         println!("\nThis is the Main Menu.");
         println!("Please input a command.");
     }
@@ -49,6 +74,7 @@ impl Menu for MainMenu {
             "hello"     => Command::Print(MainMenu::hello()),
             "quit"      => Command::Quit,
             "change"    => Command::Change(Box::new(SubMenu::new())),
+            "clients"   => Command::Change(Box::new(Clients::new())),
             _           => Command::Error,
         }
     }    
@@ -60,15 +86,11 @@ impl MainMenu {
     fn hello() -> String {
         String::from("Hello!")
     }
-
-    fn not_recognized(command: String) -> String {
-        format!("Command '{}' not recognized, please try again", command)
-    }
 }
 
 struct SubMenu {}
 impl Menu for SubMenu {
-    fn prompt(&self) {
+    fn display(&self) {
         println!("\nThis is the Sub-Menu.");
         println!("Please input a command.");
     }
