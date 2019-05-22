@@ -1,30 +1,21 @@
 use std::collections::HashMap;
+use std::error::Error;
 //use std::collections::HashSet;
 
 mod record;
 
+mod error;
+use error::{DuplicateError, NotFoundError};
 
-pub struct RecordKeeper<'a> {
-    //lists: record::Lists,
-    clients: HashMap<&'a str, Client<'a>>,
+
+struct Task<'a> {
+    name: &'a str,
 }
-impl<'a> RecordKeeper<'a> {
-    pub fn new() -> RecordKeeper<'a> {
-        RecordKeeper {
-            //lists: record::Lists::new(),
-            clients: HashMap::new(),
+impl<'a> Task<'a> {
+    pub fn new(name: &'a str) -> Task<'a> {
+        Task {
+            name: name,
         }
-    }
-    pub fn add_client(& mut self, name: &'a str) {
-        self.clients.insert(name, Client::new(name));
-    }
-    pub fn get_client_names(&self) -> Vec<&'a str> {
-        let mut result = Vec::new();
-        for (&name, _client) in self.clients.iter() {
-            result.push(name);
-        }
-        result.sort();
-        result
     }
 }
 
@@ -44,12 +35,19 @@ impl<'a> Client<'a> {
         self.name
     }
 
-    pub fn add_task(& mut self, name: &'a str) {
-        self.tasks.insert(name, Task::new(name));
+    pub fn add_task(& mut self, name: &'a str) -> Result<(), Box<dyn Error>> {
+        match self.tasks.get(name) {
+            Some(_) => Err(Box::new(DuplicateError)),
+            None    => {
+                self.tasks.insert(name, Task::new(name));
+                Ok(())
+            }
+        }
     }
+
     pub fn get_task_names(&self) -> Vec<&'a str> {
         let mut result = Vec::new();
-        for (&name, _client) in self.tasks.iter() {
+        for &name in self.tasks.keys() {
             result.push(name);
         }
         result.sort();
@@ -57,14 +55,43 @@ impl<'a> Client<'a> {
     }
 }
 
-struct Task<'a> {
-    name: &'a str,
+pub struct RecordKeeper<'a> {
+    //lists: record::Lists,
+    clients: HashMap<&'a str, Client<'a>>,
 }
-impl<'a> Task<'a> {
-    pub fn new(name: &'a str) -> Task<'a> {
-        Task {
-            name: name,
+impl<'a> RecordKeeper<'a> {
+    pub fn new() -> RecordKeeper<'a> {
+        RecordKeeper {
+            //lists: record::Lists::new(),
+            clients: HashMap::new(),
         }
+    }
+    pub fn add_client(& mut self, name: &'a str) -> Result<(), Box<dyn Error>> {
+        match self.clients.get(name) {
+            Some(_) => Err(Box::new(DuplicateError)),
+            None    => {
+                self.clients.insert(name, Client::new(name));
+                Ok(())
+            }
+        }
+    }
+    pub fn get_client_names(&self) -> Vec<&'a str> {
+        let mut result = Vec::new();
+        for &name in self.clients.keys() {
+            result.push(name);
+        }
+        result.sort();
+        result
+    }
+
+    pub fn add_task(& mut self, client_name: &'a str, task_name: &'a str)
+        -> Result<(), Box<dyn Error>>
+    {
+        let mut client = self
+            .clients
+            .entry(client_name)
+            .or_insert(Client::new(client_name));
+        client.add_task(task_name)
     }
 }
 
@@ -95,8 +122,7 @@ mod tests {
         client.add_task("Test Task");
         client.add_task("Test Task 2");
         assert_eq!(client.get_task_names(), [ "Test Task", "Test Task 2" ]);
-        client.add_task("Test Task");
-        assert_eq!(client.get_task_names(), [ "Test Task", "Test Task 2" ]);
+        assert!(client.add_task("Test Task").is_err());
     }
 
 
@@ -111,6 +137,7 @@ mod tests {
         let mut rk = RecordKeeper::new();
         rk.add_client("Test Client");
         rk.add_client("Test Client 2");
+        assert!(rk.add_client("Test Client").is_err());
     }
 
     #[test]
