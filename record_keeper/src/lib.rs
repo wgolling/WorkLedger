@@ -1,8 +1,5 @@
 use std::collections::HashMap;
 use std::error::Error;
-//use std::collections::HashSet;
-
-mod record;
 
 mod error;
 use error::{DuplicateError, NotFoundError};
@@ -12,7 +9,7 @@ struct Task<'a> {
     name: &'a str,
 }
 impl<'a> Task<'a> {
-    pub fn new(name: &'a str) -> Task<'a> {
+    fn new(name: &'a str) -> Task<'a> {
         Task {
             name: name,
         }
@@ -24,18 +21,18 @@ struct Client<'a> {
     tasks: HashMap<&'a str, Task<'a>>,
 }
 impl<'a> Client<'a> {
-    pub fn new(name: &'a str) -> Client<'a> {
+    fn new(name: &'a str) -> Client<'a> {
         Client {
             name: name,
             tasks: HashMap::new(),
         }
     }
 
-    pub fn get_name(&self) -> &'a str {
+    fn get_name(&self) -> &'a str {
         self.name
     }
 
-    pub fn add_task(& mut self, name: &'a str) -> Result<(), Box<dyn Error>> {
+    fn add_task(& mut self, name: &'a str) -> Result<(), Box<dyn Error>> {
         match self.tasks.get(name) {
             Some(_) => Err(Box::new(DuplicateError)),
             None    => {
@@ -45,7 +42,7 @@ impl<'a> Client<'a> {
         }
     }
 
-    pub fn get_task_names(&self) -> Vec<&'a str> {
+    fn get_task_names(&self) -> Vec<&'a str> {
         let mut result = Vec::new();
         for &name in self.tasks.keys() {
             result.push(name);
@@ -56,16 +53,24 @@ impl<'a> Client<'a> {
 }
 
 pub struct RecordKeeper<'a> {
-    //lists: record::Lists,
     clients: HashMap<&'a str, Client<'a>>,
 }
 impl<'a> RecordKeeper<'a> {
+    /// Returns a new RecordKeeper instance 
     pub fn new() -> RecordKeeper<'a> {
         RecordKeeper {
-            //lists: record::Lists::new(),
             clients: HashMap::new(),
         }
     }
+    /// Adds a new Client to the RecordKeeper
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name for the new client.
+    ///
+    /// # Remarks
+    /// 
+    /// Will throw an error if the client name is already in use.
     pub fn add_client(& mut self, name: &'a str) -> Result<(), Box<dyn Error>> {
         match self.clients.get(name) {
             Some(_) => Err(Box::new(DuplicateError)),
@@ -75,6 +80,7 @@ impl<'a> RecordKeeper<'a> {
             }
         }
     }
+    /// Returns a sorted list of the clients' names.
     pub fn get_client_names(&self) -> Vec<&'a str> {
         let mut result = Vec::new();
         for &name in self.clients.keys() {
@@ -83,7 +89,18 @@ impl<'a> RecordKeeper<'a> {
         result.sort();
         result
     }
-
+    /// Adds a new Task to a client with the desired name
+    /// 
+    /// # Arguments
+    ///
+    /// * `client_name` - The name of the client the task
+    /// is to be added to.
+    /// * ` task_name` - The name of the new task.
+    ///
+    /// # Remarks
+    /// 
+    /// If a client with that name does not exist, one will be added.
+    /// Will throw an error if task already exists.
     pub fn add_task(& mut self, client_name: &'a str, task_name: &'a str)
         -> Result<(), Box<dyn Error>>
     {
@@ -131,7 +148,6 @@ mod tests {
     fn make_new_record_keeper() {
         let rk = RecordKeeper::new();
     }
-
     #[test]
     fn add_clients() {
         let mut rk = RecordKeeper::new();
@@ -139,14 +155,22 @@ mod tests {
         rk.add_client("Test Client 2");
         assert!(rk.add_client("Test Client").is_err());
     }
-
     #[test]
     fn get_client_names() {
         let mut rk = RecordKeeper::new();
-        rk.add_client("Test Client");
         rk.add_client("Test Client 2");
+        rk.add_client("Test Client");
         let list = rk.get_client_names();
-
+        assert_eq!(list, [ "Test Client", "Test Client 2" ]);
+    }
+    #[test]
+    fn add_tasks() {
+        let mut rk = RecordKeeper::new();
+        rk.add_task("Test Client", "Test Task");
+        rk.add_task("Test Client 2", "Test Task");
+        rk.add_task("Test Client", "Test Task 2");
+        assert_eq!(rk.get_client_names(), [ "Test Client", "Test Client 2" ]);
+        assert!(rk.add_task("Test Client 2", "Test Task").is_err());
     }
 }
 
