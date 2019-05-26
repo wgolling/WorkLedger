@@ -1,15 +1,10 @@
 use std::{io, process};
 
-use record_keeper::RecordKeeper;
-
 mod menu;
 
 fn program_loop() {
     // Initialize menu engine
     let mut me = menu::Engine::new();
-    // Initialize record keeper
-    let mut rk = RecordKeeper::new();
-    rk.add_client("Blah.");
 
 
     loop {

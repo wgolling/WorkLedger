@@ -1,10 +1,23 @@
+use record_keeper::RecordKeeper;
+
+
+// Idea: Give Engine a generic type parameter to avoid lifetime parameters.
+//       Make RecordKeeper trait, and implement JTRecordKeeper.
 pub struct Engine {
     menu: Box<Menu>,
+    rk: RecordKeeper,
 }
 impl Engine {
     pub fn new() -> Engine {
         Engine {
             menu: Box::new(MainMenu::new()),
+            rk: RecordKeeper::new(),
+        }
+    }
+    pub fn from(rk: RecordKeeper) -> Engine {
+        Engine {
+            menu: Box::new(MainMenu::new()),
+            rk: rk,
         }
     }
 
@@ -13,22 +26,38 @@ impl Engine {
     }
     pub fn parse_command(&mut self, command: String) -> Option<String> {
         match (*self.menu).parse_command(command) {
-            Command::Quit           => None,
-            Command::Change(menu)   => {
-                self.menu = menu;
+            Command::Quit     => None,
+            Command::Change(menu_type)   
+                              => {
+                self.change_menu(menu_type);
                 return Some(String::from("Changing menu."))
             }
-            Command::Print(s)       => Some(s),
-            Command::Error          => Some(String::from("Command not recognized.")),        
+            Command::Print(s) => Some(s),
+            Command::Error    => Some(String::from("Command not recognized.")),        
         }
+    }
+    fn change_menu(& mut self, menu: MenuType) {
+        self.menu = match menu {
+            MenuType::Main    => Box::new(MainMenu::new()),
+            MenuType::Clients => Box::new(Clients::new()),
+            MenuType::Tasks   => Box::new(Tasks::new()),
+            MenuType::Sub     => Box::new(SubMenu::new()),
+        };
     }
 }
 
 enum Command {
     Quit,
-    Change(Box<Menu>),
+    Change(MenuType),
     Print(String),
     Error,
+}
+
+enum MenuType {
+    Main,
+    Clients,
+    Tasks,
+    Sub,
 }
 
 trait Menu {
@@ -36,17 +65,17 @@ trait Menu {
     fn parse_command(&self, command: String) -> Command;
 }
 
-struct Clients {
-    clients: Vec<String>,
+struct Clients<'a> {
+    clients: Vec<&'a str>,
 }
-impl Clients {
-    pub fn new() -> Clients {
+impl<'a> Clients<'a> {
+    pub fn new() -> Clients<'a> {
         Clients {
             clients: Vec::new(),
         }
     }
 }
-impl Menu for Clients {
+impl<'a> Menu for Clients<'a> {
     fn display(&self) {
         println!("\nThis is the Clients Menu.");
         println!("Please select one of the following clients:");
@@ -55,7 +84,32 @@ impl Menu for Clients {
         match command.trim().to_lowercase().as_str() {
             "hello"     => Command::Print(MainMenu::hello()),
             "quit"      => Command::Quit,
-            "change"    => Command::Change(Box::new(SubMenu::new())),
+            "change"    => Command::Change(MenuType::Sub),
+            _           => Command::Error,
+        }
+    }        
+}
+
+struct Tasks<'a> {
+    tasks: Vec<&'a str>,
+}
+impl<'a> Tasks<'a> {
+    pub fn new() -> Tasks<'a> {
+        Tasks {
+            tasks: Vec::new(),
+        }
+    }
+}
+impl<'a> Menu for Tasks<'a> {
+    fn display(&self) {
+        println!("\nThis is the Tasks Menu.");
+        println!("Please select one of the following tasks:");
+    }
+    fn parse_command(&self, command: String) -> Command {
+        match command.trim().to_lowercase().as_str() {
+            "hello"     => Command::Print(MainMenu::hello()),
+            "quit"      => Command::Quit,
+            "change"    => Command::Change(MenuType::Sub),
             _           => Command::Error,
         }
     }        
@@ -73,8 +127,8 @@ impl Menu for MainMenu {
         match command.trim().to_lowercase().as_str() {
             "hello"     => Command::Print(MainMenu::hello()),
             "quit"      => Command::Quit,
-            "change"    => Command::Change(Box::new(SubMenu::new())),
-            "clients"   => Command::Change(Box::new(Clients::new())),
+            "change"    => Command::Change(MenuType::Sub),
+            "clients"   => Command::Change(MenuType::Clients),
             _           => Command::Error,
         }
     }    
@@ -97,7 +151,7 @@ impl Menu for SubMenu {
     fn parse_command(&self, command: String) -> Command {
         match command.trim().to_lowercase().as_str() {
             "quit"      => Command::Quit,
-            "change"    => Command::Change(Box::new(MainMenu::new())),
+            "change"    => Command::Change(MenuType::Main),
             _           => Command::Error,
         }
     }    
