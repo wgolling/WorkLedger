@@ -1,6 +1,12 @@
 use std::fmt;
 use std::error::Error;
 
+
+pub enum ErrorType {
+    Duplicate(DuplicateError),
+    NotFound(NotFoundError),
+}
+
 pub struct DuplicateError;
 // Implement std::fmt::Display for DuplicateError
 impl fmt::Display for DuplicateError {

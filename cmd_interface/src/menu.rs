@@ -1,4 +1,5 @@
 use record_keeper::RecordKeeper;
+use record_keeper::error::*;
 
 
 // Idea: Give Engine a generic type parameter to avoid lifetime parameters.

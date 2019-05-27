@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::error::Error;
 
-mod error;
-use error::{DuplicateError, NotFoundError};
+pub mod error;
+use error::{ErrorType, DuplicateError, NotFoundError};
 
 
 // public DataType enum 
@@ -58,7 +58,7 @@ impl Client {
             None    => Some(DataType::Task(name)),
         }
     }
-    fn add_validated_task(& mut self, task: DataType) -> Result<(), Box<dyn Error>> {
+    fn add_validated_task(& mut self, task: DataType) -> Result<(), ErrorType> {
         match task {
             DataType::Task(name) => {
                 self.tasks.insert(name.clone(), Task::new(name));
@@ -67,12 +67,12 @@ impl Client {
             _ => panic!("Client::add_validated_task got something that wasn't a task."),
         }
     }
-    fn add_task(& mut self, name: String) -> Result<(), Box<dyn Error>> {
+    fn add_task(& mut self, name: String) -> Result<(), ErrorType> {
         match self.validate_task_name_for_add(name) {
             Some(data)  => {
                 self.add_validated_task(data)
             },
-            _ => Err(Box::new(DuplicateError)),
+            _ => Err(ErrorType::Duplicate(DuplicateError)),
         }
     }
 }
@@ -97,14 +97,14 @@ impl RecordKeeper {
         }
     }
     fn validate_client_name_for_get(&self, name: String) -> Option<DataType> {
-        match self.clients.get(&name.clone()) {
+        match self.clients.get(&name) {
             Some(_) => Some(DataType::Client(name)),
             None    => None,
         }
     }
 
     // adding clients
-    fn add_validated_client(& mut self, client: DataType) -> Result<(), Box<dyn Error>> {
+    fn add_validated_client(& mut self, client: DataType) -> Result<(), ErrorType> {
         match client {
             DataType::Client(name) => {
                 self.clients.insert(name.clone(), Client::new(name));
@@ -122,12 +122,12 @@ impl RecordKeeper {
     /// # Remarks
     /// 
     /// Will throw an error if the client name is already in use.
-    pub fn add_client(& mut self, name: String) -> Result<(), Box<dyn Error>> {
+    pub fn add_client(& mut self, name: String) -> Result<(), ErrorType> {
         match self.validate_client_name_for_add(name) {
             Some(data) => {
                 self.add_validated_client(data)
             },
-            _ => Err(Box::new(DuplicateError)),
+            _ => Err(ErrorType::Duplicate(DuplicateError)),
         }
     }
 
@@ -145,7 +145,7 @@ impl RecordKeeper {
 
     // adding tasks for a client
     fn add_task_for_validated_client(& mut self, client: DataType, task_name: String)
-        -> Result<(), Box<dyn Error>> 
+        -> Result<(), ErrorType> 
     {
         match client {
             DataType::Client(name) => 
@@ -169,17 +169,17 @@ impl RecordKeeper {
     /// Will throw a NotFoundError if the client does not exist.
     /// Will throw a DuplicateError if task already exists for that client.
     pub fn add_task(& mut self, client_name: String, task_name: String)
-        -> Result<(), Box<dyn Error>>
+        -> Result<(), ErrorType>
     {
         match self.validate_client_name_for_get(client_name) {
             Some(data) => self.add_task_for_validated_client(data, task_name),
-            None       => Err(Box::new(NotFoundError)),
+            None       => Err(ErrorType::NotFound(NotFoundError)),
         }
     }
 
     // getting tasks for a client
     fn get_tasks_for_validated_client(&self, client: DataType) 
-        -> Result<Vec<&String>, Box<dyn Error>> 
+        -> Result<Vec<&String>, ErrorType> 
     {
         match client {
             DataType::Client(s) => Ok(self.clients.get(&s).unwrap().get_task_names()),
@@ -188,11 +188,11 @@ impl RecordKeeper {
     }
     /// Returns a sorted list of tasks for a given client, if it exists.
     pub fn get_tasks_for_client(&self, client: String) 
-        -> Result<Vec<&String>, Box<dyn Error>> 
+        -> Result<Vec<&String>, ErrorType> 
     {
         match self.validate_client_name_for_get(client) {
             Some(data) => self.get_tasks_for_validated_client(data),
-            None       => Err(Box::new(NotFoundError)),
+            None       => Err(ErrorType::NotFound(NotFoundError)),
         }
     }
 }
@@ -334,22 +334,16 @@ mod tests {
         let test_task   = String::from("Test Task");
         // should throw NotFoundError
         match rk.add_task(test_client.clone(), test_task.clone()) {
-            Err(b) => {
-                let s = format!("{}", b);
-                assert_eq!(s, "Key not found.")
-            },
-            _ => assert!(false),
+            Err(ErrorType::NotFound(_)) => assert!(true),
+            _                           => assert!(false),
         };
         rk.add_client(test_client.clone());
         rk.add_client(String::from("Test Client 2"));
         rk.add_task(test_client.clone(), test_task.clone());
         // should throw DuplicateError
         match rk.add_task(test_client.clone(), test_task.clone()) {
-            Err(b) => {
-                let s = format!("{}", b);
-                assert_eq!(s, "Key already in use.")
-            },
-            _ => assert!(false),
+            Err(ErrorType::Duplicate(_)) => assert!(true),
+            _                            => assert!(false),
         };
         rk.add_task(String::from("Test Client 2"), test_task.clone());
         rk.add_task(test_client.clone(), String::from("Test Task 2"));
