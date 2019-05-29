@@ -15,7 +15,7 @@ impl Engine {
     pub fn new() -> Engine {
         Engine {
             controller: AppController::new(),
-            parser: Box::new(MainMenuParser {}),
+            parser: Box::new(MainMenuParser ),
         }
     }
 
