@@ -1,4 +1,4 @@
-use crate::app::views::{MenuView, MainMenu};
+use crate::app::views::{MenuView, SplashPage};
 use crate::app::models::User;
 
 pub struct AppController {
@@ -8,7 +8,7 @@ pub struct AppController {
 
 impl AppController {
     pub fn new() -> AppController {
-        AppController::from(Box::new(MainMenu::new()), User::new())
+        AppController::from(Box::new(SplashPage), User::new())
     }
     pub fn from(view: Box<MenuView>, model: User) -> AppController {
         AppController { view, model, }

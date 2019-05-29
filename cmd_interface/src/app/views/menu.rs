@@ -9,34 +9,43 @@ pub trait MenuView {
     fn display(&self);
 }
 
-pub struct Clients<'a> {
+
+pub struct SplashPage;
+impl MenuView for SplashPage {
+    fn display(&self) {
+        println!("\nWelcome to William's Work Ledger!\n\n");
+        println!("It manages work records and compiles invoices.");
+    } 
+}
+
+pub struct ClientMenu<'a> {
     clients: Vec<&'a str>,
 }
-impl<'a> Clients<'a> {
-    pub fn new() -> Clients<'a> {
-        Clients {
+impl<'a> ClientMenu<'a> {
+    pub fn new() -> ClientMenu<'a> {
+        ClientMenu {
             clients: Vec::new(),
         }
     }
 }
-impl<'a> MenuView for Clients<'a> {
+impl<'a> MenuView for ClientMenu<'a> {
     fn display(&self) {
         println!("\nThis is the Clients Menu.");
         println!("Please select one of the following clients:");
     }
 }
 
-pub struct Tasks<'a> {
+pub struct TaskMenu<'a> {
     tasks: Vec<&'a str>,
 }
-impl<'a> Tasks<'a> {
-    pub fn new() -> Tasks<'a> {
-        Tasks {
+impl<'a> TaskMenu<'a> {
+    pub fn new() -> TaskMenu<'a> {
+        TaskMenu {
             tasks: Vec::new(),
         }
     }
 }
-impl<'a> MenuView for Tasks<'a> {
+impl<'a> MenuView for TaskMenu<'a> {
     fn display(&self) {
         println!("\nThis is the Tasks Menu.");
         println!("Please select one of the following tasks:");

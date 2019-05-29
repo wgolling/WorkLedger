@@ -15,7 +15,7 @@ impl Engine {
     pub fn new() -> Engine {
         Engine {
             controller: AppController::new(),
-            parser: Box::new(MainMenuParser ),
+            parser: Box::new(SplashPageParser),
         }
     }
 
@@ -64,15 +64,22 @@ impl Engine {
 
     fn change_state(&mut self, state: State) {
         match state {
-            SplashPage => {
-
+            State::SplashPage => {
+                self.parser = Box::new(SplashPageParser);
+                self.controller.change_view(Box::new(SplashPage));                
             },
-            MainMenu => {
+            State::MainMenu => {
                 self.parser = Box::new(MainMenuParser);
                 self.controller.change_view(Box::new(MainMenu::new()));
             },
-            ClientMenu => {},
-            TaskMenu => {},            
+            State::ClientMenu => {
+                self.parser = Box::new(ClientMenuParser);
+                self.controller.change_view(Box::new(ClientMenu::new()));                
+            },
+            State::TaskMenu => {
+                self.parser = Box::new(TaskMenuParser);
+                self.controller.change_view(Box::new(TaskMenu::new()));                
+            },            
         }
     }
 }
