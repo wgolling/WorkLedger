@@ -5,8 +5,8 @@ pub struct User {
 }
 
 impl User {
-    pub fn new() -> UserModel {
-        UserModel {
+    pub fn new() -> User {
+        User {
             rk: RecordKeeper::new(),
         }
     }

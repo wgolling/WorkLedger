@@ -2,6 +2,7 @@ use std::process;
 
 mod engine;
 mod menu;
+mod app;
 
 fn main() {
     //record_keeper::print_hello();
