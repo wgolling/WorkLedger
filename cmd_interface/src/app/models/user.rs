@@ -10,4 +10,7 @@ impl User {
             rk: RecordKeeper::new(),
         }
     }
+    pub fn get_client_names(&self) -> Vec<&String> {
+        self.rk.get_client_names()
+    }
 }

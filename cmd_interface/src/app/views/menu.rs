@@ -19,12 +19,18 @@ impl MenuView for SplashPage {
 }
 
 pub struct ClientMenu<'a> {
-    clients: Vec<&'a str>,
+    clients: Vec<&'a String>,
 }
 impl<'a> ClientMenu<'a> {
-    pub fn new() -> ClientMenu<'a> {
+    pub fn new () -> ClientMenu<'a> {
         ClientMenu {
             clients: Vec::new(),
+        }
+
+    }
+    pub fn from(clients: Vec<&'a String>) -> ClientMenu<'a> {
+        ClientMenu {
+            clients: clients,
         }
     }
 }

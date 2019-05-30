@@ -19,4 +19,8 @@ impl AppController {
     pub fn change_view(& mut self, view: Box<MenuView>) {
         self.view = view;
     }
+
+    pub fn get_client_names(&self) -> Vec<&String> {
+        self.model.get_client_names()
+    }
 }
