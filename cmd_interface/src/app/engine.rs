@@ -8,14 +8,14 @@ use super::enums::*;
 
 pub struct Engine {
     controller: AppController,
-    parser: Box<Parser>,
+    parser:     Box<Parser>,
 }
 
 impl Engine {
     pub fn new() -> Engine {
         Engine {
             controller: AppController::new(),
-            parser: Box::new(SplashPageParser),
+            parser:     Box::new(SplashPageParser),
         }
     }
 
