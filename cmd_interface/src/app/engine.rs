@@ -6,6 +6,8 @@ use super::controllers::AppController;
 use super::views::*;
 use super::enums::*;
 
+use record_keeper::{ErrorType, NotFoundError};
+
 
 pub struct Engine {
     controller: AppController,
@@ -16,17 +18,17 @@ impl Engine {
     pub fn new() -> Engine {
         let u = User::new();
         Engine {
-            controller: 
-                AppController::from(Box::new(SplashPage), u),
+            controller: AppController::from(Box::new(SplashPage), u),
             parser: Box::new(SplashPageParser),
         }
     }
 
     pub fn run(& mut self) {
-        // let user   = User::new();
-        // let view   = SplashPage;
-        // let controller = AppController::from(view, &user);
-        // let parser = SplashPageParser;
+        self.controller.add_client("Client 1".to_string());
+        self.controller.add_client("Client 3".to_string());
+        self.controller.add_client("Client 2".to_string());
+
+
 
         loop {
             // Display menu.
@@ -39,13 +41,13 @@ impl Engine {
 
             // Trim input.
             command_string = command_string.trim().to_string();
-
-            println!("Your command: {}", &command_string);
+            //println!("Your command: {}", &command_string);
 
             // Pass the string to the parser.
-            let command = (*self.parser).parse(command_string);
-            let result = self.execute(command);
-            match result {
+            let command = (*self.parser).parse(&command_string);
+           
+            // Handle command.           
+            match self.execute(command) {
                 Some(s) => println!("{}", s),
                 None    => break,
             }
@@ -62,34 +64,50 @@ impl Engine {
     fn execute(&mut self, command: Command) -> Option<String> {
         match command {
             Command::Quit     => None,
-            Command::Change(state)   
-                              => {
-                self.change_state(state);
-                return Some(String::from("Changing menu."))
-            }
+            Command::Change(state) => {
+                match self.change_state(state) {
+                    Ok(_) => Some(String::from("Changing menu.")), 
+                    Err(ErrorType::NotFound(e)) => {
+                        Some(format!("{}", e))
+                    },
+                    Err(ErrorType::Duplicate(_)) => {
+                        panic!("Unexpected error type.");
+                        //Some("".to_string())
+                    }
+                }
+            },
             Command::Print(s) => Some(s),
-            Command::Error    => Some(String::from("Command not recognized.")),        
+            Command::Error(s) => Some(format!("Command '{}' not recognized.", s)),        
         }
     }
 
-    fn change_state(&mut self, state: State) {
+    fn change_state(&mut self, state: State) -> Result<(), ErrorType> {
         match state {
             State::SplashPage => {
                 self.parser = Box::new(SplashPageParser);
-                self.controller.change_view(Box::new(SplashPage));                
+                self.controller.change_view(Box::new(SplashPage));  
+                Ok(())              
             },
             State::MainMenu => {
                 self.parser = Box::new(MainMenuParser);
                 self.controller.change_view(Box::new(MainMenu::new()));
+                Ok(())
             },
             State::ClientMenu => {
-                
-                self.parser = Box::new(ClientMenuParser);
-                self.controller.change_view(Box::new(ClientMenu::new()));                
+                let v = self.controller.get_owned_names();
+                self.parser = Box::new(ClientMenuParser::from(v.to_vec()));
+                self.controller.change_view(Box::new(ClientMenu::from(v)));
+                Ok(())                
             },
-            State::TaskMenu => {
-                self.parser = Box::new(TaskMenuParser);
-                self.controller.change_view(Box::new(TaskMenu::new()));                
+            State::TaskMenu(name) => {
+                let v = self.controller.get_owned_names();
+                if !v.contains(&name) {
+                    Err(ErrorType::NotFound(NotFoundError))
+                } else {      
+                    self.parser = Box::new(TaskMenuParser);
+                    self.controller.change_view(Box::new(TaskMenu::new())); 
+                    Ok(())   
+                }            
             },            
         }
     }

@@ -2,7 +2,7 @@ mod menu;
 
 pub use self::menu::{
     MenuView,
-    MenuType,
+//    MenuType,
     SplashPage,
     MainMenu,
     ClientMenu,

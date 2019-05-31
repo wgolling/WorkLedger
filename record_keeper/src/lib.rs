@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 pub mod error;
-use error::{ErrorType, DuplicateError, NotFoundError};
+pub use error::{ErrorType, DuplicateError, NotFoundError};
 
 
 // public DataType enum 
@@ -143,6 +143,16 @@ impl RecordKeeper {
         result
     }
 
+    /// Returns an owned vector of copies of clients' names.
+    pub fn get_owned_names(&self) -> Vec<String> {
+        let mut result = Vec::new();
+        for name in self.clients.keys() {
+            result.push((*name).clone());
+        }
+        result.sort();
+        result
+    }
+
     // adding tasks for a client
     fn add_task_for_validated_client(& mut self, client: DataType, task_name: String)
         -> Result<(), ErrorType> 
@@ -195,6 +205,19 @@ impl RecordKeeper {
             None       => Err(ErrorType::NotFound(NotFoundError)),
         }
     }
+    // /// Returns an owned sorted list of tasks for a given client, if it exists.
+    // pub fn get_owned_tasks_for_client(&self, client: String) 
+    //     -> Result<Vec<String>, ErrorType> 
+    // {
+    //     match self.get_tasks_for_client(client) {
+    //         Ok(ref_vec) => ,
+    //         Err(e)      => Err(e),
+    //     }
+    // }
+
+    // fn ref_vec_to_owned(ref_vec: Vec<&String>) -> Vec<String> {
+    //     let mut v = 
+    // }
 }
 
 

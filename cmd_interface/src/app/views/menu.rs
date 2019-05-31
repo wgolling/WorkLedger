@@ -1,9 +1,9 @@
-pub enum MenuType {
-    Main,
-    Clients,
-    Tasks,
-    Sub,
-}
+// pub enum MenuType {
+//     Main,
+//     Clients,
+//     Tasks,
+//     Sub,
+// }
 
 pub trait MenuView {
     fn display(&self);
@@ -18,43 +18,53 @@ impl MenuView for SplashPage {
     } 
 }
 
-pub struct ClientMenu<'a> {
-    clients: Vec<&'a String>,
+pub struct ClientMenu {
+    client_names: Vec<String>,
 }
-impl<'a> ClientMenu<'a> {
-    pub fn new () -> ClientMenu<'a> {
-        ClientMenu {
-            clients: Vec::new(),
-        }
+impl ClientMenu {
+    // pub fn new () -> ClientMenu {
+    //     ClientMenu {
+    //         client_names: Vec::new(),
+    //     }
 
-    }
-    pub fn from(clients: Vec<&'a String>) -> ClientMenu<'a> {
+    // }
+    pub fn from(client_names: Vec<String>) -> ClientMenu {
         ClientMenu {
-            clients: clients,
+            client_names: client_names,
         }
     }
 }
-impl<'a> MenuView for ClientMenu<'a> {
+impl MenuView for ClientMenu {
     fn display(&self) {
         println!("\nThis is the Clients Menu.");
         println!("Please select one of the following clients:");
+        print_array(&self.client_names);
+        // for name in &self.client_names {
+        //     println!("{}", name);
+        // }
     }
 }
 
-pub struct TaskMenu<'a> {
-    tasks: Vec<&'a str>,
+pub struct TaskMenu {
+    client_name: String,
+    task_names: Vec<String>,
 }
-impl<'a> TaskMenu<'a> {
-    pub fn new() -> TaskMenu<'a> {
+impl TaskMenu {
+    pub fn new() -> TaskMenu {
         TaskMenu {
-            tasks: Vec::new(),
+            client_name: "Dummy Client".to_string(),
+            task_names: Vec::new(),
         }
     }
+    pub fn from(client_name: String, task_names: Vec<String>) -> TaskMenu {
+        TaskMenu { client_name, task_names }
+    }
 }
-impl<'a> MenuView for TaskMenu<'a> {
+impl MenuView for TaskMenu {
     fn display(&self) {
-        println!("\nThis is the Tasks Menu.");
+        println!("\nThis is the Tasks Menu for {}.", &self.client_name);
         println!("Please select one of the following tasks:");
+        print_array(&self.task_names);
     }
 }
 
@@ -71,20 +81,12 @@ impl MainMenu {
     pub fn new() -> MainMenu {
         MainMenu {}
     }
-    pub fn hello() -> String {
-        String::from("Hello!")
-    }
 }
 
-pub struct SubMenu {}
-impl MenuView for SubMenu {
-    fn display(&self) {
-        println!("\nThis is the Sub-Menu.");
-        println!("Please input a command.");
-    }
-}
-impl SubMenu {
-    pub fn new() -> SubMenu {
-        SubMenu {}
+
+
+fn print_array(v: &Vec<String>) {
+    for item in v {
+        println!("{}", item);
     }
 }
