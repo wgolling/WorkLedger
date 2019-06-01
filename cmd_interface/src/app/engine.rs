@@ -9,6 +9,7 @@ use super::enums::*;
 use record_keeper::{ErrorType, NotFoundError};
 
 
+// Engine class that runs the program.
 pub struct Engine {
     controller: AppController,
     parser:     Box<Parser>,
@@ -24,11 +25,8 @@ impl Engine {
     }
 
     pub fn run(& mut self) {
-        self.controller.add_client("Client 1".to_string());
-        self.controller.add_client("Client 3".to_string());
-        self.controller.add_client("Client 2".to_string());
 
-
+        self.load_model();
 
         loop {
             // Display menu.
@@ -57,6 +55,14 @@ impl Engine {
 
     }
 
+    fn load_model(&mut self) {
+        self.controller.add_client("Client 1".to_string());
+        self.controller.add_task("Client 1".to_string(), "Task 1".to_string());
+        self.controller.add_task("Client 1".to_string(), "Task 2".to_string());
+        self.controller.add_client("Client 3".to_string());
+        self.controller.add_client("Client 2".to_string());        
+    }
+
     pub fn display(&self) {
         self.controller.display();
     }
@@ -72,7 +78,6 @@ impl Engine {
                     },
                     Err(ErrorType::Duplicate(_)) => {
                         panic!("Unexpected error type.");
-                        //Some("".to_string())
                     }
                 }
             },
@@ -90,24 +95,20 @@ impl Engine {
             },
             State::MainMenu => {
                 self.parser = Box::new(MainMenuParser);
-                self.controller.change_view(Box::new(MainMenu::new()));
+                self.controller.change_view(Box::new(MainMenu));
                 Ok(())
             },
             State::ClientMenu => {
                 let v = self.controller.get_owned_names();
-                self.parser = Box::new(ClientMenuParser::from(v.to_vec()));
+                self.parser = Box::new(ClientMenuParser);
                 self.controller.change_view(Box::new(ClientMenu::from(v)));
                 Ok(())                
             },
             State::TaskMenu(name) => {
-                let v = self.controller.get_owned_names();
-                if !v.contains(&name) {
-                    Err(ErrorType::NotFound(NotFoundError))
-                } else {      
-                    self.parser = Box::new(TaskMenuParser);
-                    self.controller.change_view(Box::new(TaskMenu::new())); 
-                    Ok(())   
-                }            
+                let v = self.controller.get_owned_tasks_for_client(name.clone())?;
+                self.parser = Box::new(TaskMenuParser);
+                self.controller.change_view(Box::new(TaskMenu::from(name, v))); 
+                Ok(())                           
             },            
         }
     }

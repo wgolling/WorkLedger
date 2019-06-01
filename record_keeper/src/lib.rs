@@ -18,9 +18,7 @@ struct Task {
 }
 impl Task {
     fn new(name: String) -> Task {
-        Task {
-            name: name,
-        }
+        Task { name }
     }
     fn get_name(&self) -> &str {
         &self.name
@@ -35,7 +33,7 @@ struct Client {
 impl Client {
     fn new(name: String) -> Client {
         Client {
-            name: name,
+            name,
             tasks: HashMap::new(),
         }
     }
@@ -205,22 +203,20 @@ impl RecordKeeper {
             None       => Err(ErrorType::NotFound(NotFoundError)),
         }
     }
-    // /// Returns an owned sorted list of tasks for a given client, if it exists.
-    // pub fn get_owned_tasks_for_client(&self, client: String) 
-    //     -> Result<Vec<String>, ErrorType> 
-    // {
-    //     match self.get_tasks_for_client(client) {
-    //         Ok(ref_vec) => ,
-    //         Err(e)      => Err(e),
-    //     }
-    // }
+    /// Returns an owned sorted list of tasks for a given client, if it exists.
+    pub fn get_owned_tasks_for_client(&self, client: String) 
+        -> Result<Vec<String>, ErrorType> 
+    {
+        match self.get_tasks_for_client(client) {
+            Ok(ref_vec) => Ok(RecordKeeper::ref_vec_to_owned(ref_vec)),
+            Err(e)      => Err(e),
+        }
+    }
 
-    // fn ref_vec_to_owned(ref_vec: Vec<&String>) -> Vec<String> {
-    //     let mut v = 
-    // }
+    fn ref_vec_to_owned(ref_vec: Vec<&String>) -> Vec<String> {
+        ref_vec.into_iter().map( |name_ref| name_ref.clone() ).collect()
+    }
 }
-
-
 
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 use super::enums::{Command, State};
 
-
+// Helper function for formatting input.
 fn split_at_first_space(s: &String) -> (&str, &str) {
     match s.find(" ") {
         Some(i) => {
@@ -10,11 +10,14 @@ fn split_at_first_space(s: &String) -> (&str, &str) {
     }
 }
 
+
+// Wraps a single parse method that returns a Command variant.
 pub trait Parser {
     fn parse(&self, s: &String) -> Command;
 }
 
 
+// The entry point of the program. Every command goes to the Main menu.
 pub struct SplashPageParser;
 
 impl Parser for SplashPageParser {
@@ -24,6 +27,8 @@ impl Parser for SplashPageParser {
 }
 
 
+// The Main menu.
+// Has commands for navigating to submenus.
 pub struct MainMenuParser;
 
 impl Parser for MainMenuParser {
@@ -39,24 +44,18 @@ impl Parser for MainMenuParser {
 }
 
 
-pub struct ClientMenuParser {
-    client_names: Vec<String>,
-}
-impl ClientMenuParser {
-    pub fn from(client_names: Vec<String>) -> ClientMenuParser {
-        ClientMenuParser {
-            client_names: client_names,
-        }
-    }
-}
+// The Clients menu.
+// Has commands for adding and loading clients, and returning to Main.
+pub struct ClientMenuParser;
+
 impl Parser for ClientMenuParser {
     fn parse(&self, s: &String) -> Command {
-        let (first_word, rest) = split_at_first_space(s);
+        let (first_word, rest_of_input) = split_at_first_space(s);
         match first_word.to_lowercase().as_str() {
             "hello"     => Command::Print("Hello from Client Menu!".to_string()),
             "quit"      => Command::Quit,
             "tasks"     => Command::Change(State::TaskMenu("Test Client".to_string())),
-            "load"      => Command::Change(State::TaskMenu(rest.to_string())),
+            "load"      => Command::Change(State::TaskMenu(rest_of_input.to_string())),
             "main"      => Command::Change(State::MainMenu),
             _           => Command::Error((*s).clone()),
         }
@@ -64,6 +63,8 @@ impl Parser for ClientMenuParser {
 }
 
 
+// The Tasks menu.
+// Has commands for adding tasks for a given client, and returning to Clients.
 pub struct TaskMenuParser;
 
 impl Parser for TaskMenuParser {
@@ -71,7 +72,7 @@ impl Parser for TaskMenuParser {
         match (*s).trim().to_lowercase().as_str() {
             "hello"     => Command::Print("Hello from Task Menu!".to_string()),
             "quit"      => Command::Quit,
-            "clients"   => Command::Change(State::ClientMenu),
+            "back"      => Command::Change(State::ClientMenu),
             "main"      => Command::Change(State::MainMenu),
             _           => Command::Error((*s).clone()),
         }
