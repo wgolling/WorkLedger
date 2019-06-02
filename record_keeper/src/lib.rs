@@ -50,10 +50,10 @@ impl Client {
     }
 
     // Adding Tasks
-    fn validate_task_name_for_add(&self, name: String) -> Option<DataType> {
+    fn validate_task_name_for_add(&self, name: String) -> Result<DataType, ErrorType> {
         match self.tasks.get(&name) {
-            Some(_) => None,
-            None    => Some(DataType::Task(name)),
+            Some(_) => Err(ErrorType::Duplicate(DuplicateError)),
+            None    => Ok(DataType::Task(name)),
         }
     }
     fn add_validated_task(& mut self, task: DataType) -> Result<(), ErrorType> {
@@ -66,12 +66,8 @@ impl Client {
         }
     }
     fn add_task(& mut self, name: String) -> Result<(), ErrorType> {
-        match self.validate_task_name_for_add(name) {
-            Some(data)  => {
-                self.add_validated_task(data)
-            },
-            _ => Err(ErrorType::Duplicate(DuplicateError)),
-        }
+        let data = self.validate_task_name_for_add(name)?; 
+        self.add_validated_task(data)
     }
 }
 
@@ -90,16 +86,16 @@ impl RecordKeeper {
     }
 
     // Input validation methods
-    fn validate_client_name_for_add(&self, name: String) -> Option<DataType> {
+    fn validate_client_name_for_add(&self, name: String) -> Result<DataType, ErrorType> {
         match self.clients.get(&name) {
-            Some(_) => None,
-            None    => Some(DataType::Client(name)),
+            Some(_) => Err(ErrorType::Duplicate(DuplicateError)),
+            None    => Ok(DataType::Client(name)),
         }
     }
-    fn validate_client_name_for_get(&self, name: String) -> Option<DataType> {
+    fn validate_client_name_for_get(&self, name: String) -> Result<DataType, ErrorType> {
         match self.clients.get(&name) {
-            Some(_) => Some(DataType::Client(name)),
-            None    => None,
+            Some(_) => Ok(DataType::Client(name)),
+            None    => Err(ErrorType::NotFound(NotFoundError)),
         }
     }
 
@@ -125,12 +121,8 @@ impl RecordKeeper {
     /// 
     /// Will throw an error if the client name is already in use.
     pub fn add_client(& mut self, name: String) -> Result<(), ErrorType> {
-        match self.validate_client_name_for_add(name) {
-            Some(data) => {
-                self.add_validated_client(data)
-            },
-            _ => Err(ErrorType::Duplicate(DuplicateError)),
-        }
+        let data = self.validate_client_name_for_add(name)?;
+        self.add_validated_client(data)
     }
 
     // getting client names
@@ -188,10 +180,8 @@ impl RecordKeeper {
     pub fn add_task(& mut self, client_name: String, task_name: String)
         -> Result<(), ErrorType>
     {
-        match self.validate_client_name_for_get(client_name) {
-            Some(data) => self.add_task_for_validated_client(data, task_name),
-            None       => Err(ErrorType::NotFound(NotFoundError)),
-        }
+        let data = self.validate_client_name_for_get(client_name)?; 
+        self.add_task_for_validated_client(data, task_name)
     }
 
     // getting tasks for a client
@@ -207,10 +197,8 @@ impl RecordKeeper {
     pub fn get_tasks_for_client(&self, client: String) 
         -> Result<Vec<&String>, ErrorType> 
     {
-        match self.validate_client_name_for_get(client) {
-            Some(data) => self.get_tasks_for_validated_client(data),
-            None       => Err(ErrorType::NotFound(NotFoundError)),
-        }
+        let data = self.validate_client_name_for_get(client)?;
+        self.get_tasks_for_validated_client(data)
     }
     /// Returns an owned sorted list of tasks for a given client, if it exists.
     pub fn get_owned_tasks_for_client(&self, client: String) 

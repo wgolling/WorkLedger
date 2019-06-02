@@ -22,14 +22,13 @@ fn validating_task_names() {
     // If the task name doesn't exist yet, validate_task_name_for_add
     // will return data.
     match client.validate_task_name_for_add(test_name.clone()) {
-        Some(DataType::Task(name)) => assert_eq!(*&name, "Test Name"),
+        Ok(DataType::Task(name)) => assert_eq!(*&name, "Test Name"),
         _ => assert!(false),
     } 
-    let data = client.validate_task_name_for_add(test_name.clone()).unwrap();
-    client.add_validated_task(data);
+    client.add_task(test_name.clone());
     // If task name already exists, returns None.
     match client.validate_task_name_for_add(test_name.clone()) {
-        None => assert!(true),
+        Err(_) => assert!(true),
         _    => assert!(false),
     }
 }
@@ -64,23 +63,27 @@ fn validating_client_names_for_add() {
     let mut rk = RecordKeeper::new();
     let test_name = String::from("Test Name");
     match rk.validate_client_name_for_add(test_name.clone()) {
-        Some(DataType::Client(name)) => assert_eq!(*&name, "Test Name"),
+        Ok(DataType::Client(name)) => assert_eq!(*&name, "Test Name"),
         _ => assert!(false),
     }
-    let data = rk.validate_client_name_for_add(test_name.clone());
-    rk.add_validated_client(data.unwrap());
-    assert_eq!(rk.clients.len(), 1);
+    match rk.validate_client_name_for_add(test_name.clone()){
+        Ok(data) => {
+            rk.add_validated_client(data);
+            assert_eq!(rk.clients.len(), 1);
+        },
+        _ => assert!(false),
+    }
 }
 fn validating_client_names_for_get() {
     let mut rk = RecordKeeper::new();
     let test_name = String::from("Test Name");
     match rk.validate_client_name_for_get(test_name.clone()) {
-        None => assert!(true),
+        Err(_) => assert!(true),
         _ => assert!(false),
     }
     rk.add_client(test_name.clone());
     match rk.validate_client_name_for_get(test_name.clone()) {
-        Some(DataType::Client(name)) => assert_eq!(*&name, "Test Name"),
+        Ok(DataType::Client(name)) => assert_eq!(*&name, "Test Name"),
         _ => assert!(false),
     }        
 }
