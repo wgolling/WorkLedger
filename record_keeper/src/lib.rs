@@ -77,13 +77,15 @@ impl Client {
 
 // public RecordKeeper struct
 pub struct RecordKeeper {
-    clients: HashMap<String, Client>,
+    clients: HashMap<String, Client>,                                        // A hash table of client neames to client objects.
+    client_names: Vec<String>,                                               // A sorted list of client names.
 }
 impl RecordKeeper {
-    /// Returns a new RecordKeeper instance 
+    /// Returns a new RecordKeeper instance.
     pub fn new() -> RecordKeeper {
         RecordKeeper {
             clients: HashMap::new(),
+            client_names: Vec::new(),
         }
     }
 
@@ -105,7 +107,9 @@ impl RecordKeeper {
     fn add_validated_client(& mut self, client: DataType) -> Result<(), ErrorType> {
         match client {
             DataType::Client(name) => {
-                self.clients.insert(name.clone(), Client::new(name));
+                self.clients.insert(name.clone(), Client::new(name.clone()));
+                self.client_names.push(name);
+                self.client_names.sort();
                 Ok(())
             },
             _ => panic!("RecordKeeper::add_validated_client got something that wasn't a client."),
@@ -139,6 +143,11 @@ impl RecordKeeper {
         }
         result.sort();
         result
+    }
+
+    /// Returns a reference to a sorted vector of client names.
+    pub fn get_client_names_ref(&self) -> &Vec<String> {
+        &self.client_names
     }
 
     /// Returns an owned vector of copies of clients' names.

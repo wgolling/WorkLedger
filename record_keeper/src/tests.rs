@@ -121,6 +121,10 @@ fn get_client_names() {
     rk.add_client(String::from("Test Client"));
     let list = rk.get_client_names();
     assert_eq!(list, [ "Test Client", "Test Client 2" ]);
+    let list_ref = rk.get_client_names_ref();
+    let mut v = list_ref.to_vec();
+    v.sort();
+    assert_eq!(v, [ "Test Client", "Test Client 2" ]);
 }
 // adding tasks for a client
 #[test]

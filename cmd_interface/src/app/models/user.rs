@@ -26,6 +26,9 @@ impl User {
     pub fn get_owned_names(&self) -> Vec<String> {
         self.rk.get_owned_names()
     }
+    pub fn get_client_names_ref(&self) -> &Vec<String> {
+        self.rk.get_client_names_ref()
+    }
 
     // Addings tasks for clients.
     pub fn add_task(& mut self, client_name: String, task_name: String)
