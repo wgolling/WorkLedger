@@ -1,5 +1,9 @@
-use crate::app::views::{MenuView, SplashPage};
-use crate::app::models::User;
+use crate::app::{
+    views::*, 
+    models::User,
+    enums::{State, Command},
+    parser::*,
+};
 use record_keeper::ErrorType;
 
 
@@ -8,21 +12,83 @@ use record_keeper::ErrorType;
 pub struct AppController {
     view: Box<MenuView>,
     model: User,
+    parser: Box<Parser>,
 }
 
 impl AppController {
-    pub fn from(view: Box<MenuView>, model: User) -> AppController {
-        AppController { view, model, }
+    pub fn from(
+        view: Box<MenuView>, 
+        model: User, 
+        parser: Box<Parser>,
+        ) -> AppController 
+    {
+        AppController { view, model, parser, }
     }
+
+    // Processing input.
+    pub fn process_command(&mut self, command_string: String) -> Option<String> {
+        self.execute(self.parser.parse(&command_string))
+    }
+
+    fn execute(&mut self, command: Command) -> Option<String> {
+        match command {
+            Command::Quit     => None,
+            Command::Change(state) => {
+                match self.change_state(state) {
+                    Ok(_) => Some(String::from("Changing menu.")), 
+                    Err(ErrorType::NotFound(e)) => {
+                        Some(format!("{}", e))
+                    },
+                    Err(ErrorType::Duplicate(_)) => {
+                        panic!("Unexpected error type.");
+                    }
+                }
+            },
+            Command::Print(s) => Some(s),
+            Command::Error(s) => Some(format!("Command '{}' not recognized.", s)),        
+        }
+    }
+
+    // Changing state.
+    fn change_state(&mut self, state: State) -> Result<(), ErrorType> {
+        match state {
+            State::SplashPage => {
+                self.change_parser(Box::new(SplashPageParser));
+                self.change_view(Box::new(SplashPage));  
+                Ok(())              
+            },
+            State::MainMenu => {
+                self.change_parser(Box::new(MainMenuParser));
+                self.change_view(Box::new(MainMenu));
+                Ok(())
+            },
+            State::ClientMenu => {
+                let v = self.get_owned_names();
+                self.change_parser(Box::new(ClientMenuParser));
+                self.change_view(Box::new(ClientMenu::from(v)));
+                Ok(())                
+            },
+            State::TaskMenu(name) => {
+                let v = self.get_owned_tasks_for_client(name.clone())?;
+                self.change_parser(Box::new(TaskMenuParser));
+                self.change_view(Box::new(TaskMenu::from(name, v))); 
+                Ok(())                           
+            },            
+        }
+    }
+
 
     // Displaying view.
     pub fn display(&self) {
         (*self.view).display();
     }
 
-    // Changing view.
+    // Changing state.
     pub fn change_view(& mut self, view: Box<MenuView>) {
         self.view = view;
+    }
+    pub fn change_parser(& mut self, parser: Box<Parser>) {
+        self.parser = parser;
     }
 
     // Adding Clients

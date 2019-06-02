@@ -6,21 +6,21 @@ use super::controllers::AppController;
 use super::views::*;
 use super::enums::*;
 
-use record_keeper::{ErrorType, NotFoundError};
+use record_keeper::ErrorType;
 
 
 // Engine class that runs the program.
 pub struct Engine {
     controller: AppController,
-    parser:     Box<Parser>,
 }
 
 impl Engine {
     pub fn new() -> Engine {
-        let u = User::new();
         Engine {
-            controller: AppController::from(Box::new(SplashPage), u),
-            parser: Box::new(SplashPageParser),
+            controller: AppController::from(
+                Box::new(SplashPage), 
+                User::new(),
+                Box::new(SplashPageParser)),
         }
     }
 
@@ -39,13 +39,9 @@ impl Engine {
 
             // Trim input.
             command_string = command_string.trim().to_string();
-            //println!("Your command: {}", &command_string);
 
-            // Pass the string to the parser.
-            let command = (*self.parser).parse(&command_string);
-           
-            // Handle command.           
-            match self.execute(command) {
+            // Pass the command to the controller.
+            match self.controller.process_command(command_string) {
                 Some(s) => println!("{}", s),
                 None    => break,
             }
@@ -65,51 +61,5 @@ impl Engine {
 
     pub fn display(&self) {
         self.controller.display();
-    }
-
-    fn execute(&mut self, command: Command) -> Option<String> {
-        match command {
-            Command::Quit     => None,
-            Command::Change(state) => {
-                match self.change_state(state) {
-                    Ok(_) => Some(String::from("Changing menu.")), 
-                    Err(ErrorType::NotFound(e)) => {
-                        Some(format!("{}", e))
-                    },
-                    Err(ErrorType::Duplicate(_)) => {
-                        panic!("Unexpected error type.");
-                    }
-                }
-            },
-            Command::Print(s) => Some(s),
-            Command::Error(s) => Some(format!("Command '{}' not recognized.", s)),        
-        }
-    }
-
-    fn change_state(&mut self, state: State) -> Result<(), ErrorType> {
-        match state {
-            State::SplashPage => {
-                self.parser = Box::new(SplashPageParser);
-                self.controller.change_view(Box::new(SplashPage));  
-                Ok(())              
-            },
-            State::MainMenu => {
-                self.parser = Box::new(MainMenuParser);
-                self.controller.change_view(Box::new(MainMenu));
-                Ok(())
-            },
-            State::ClientMenu => {
-                let v = self.controller.get_owned_names();
-                self.parser = Box::new(ClientMenuParser);
-                self.controller.change_view(Box::new(ClientMenu::from(v)));
-                Ok(())                
-            },
-            State::TaskMenu(name) => {
-                let v = self.controller.get_owned_tasks_for_client(name.clone())?;
-                self.parser = Box::new(TaskMenuParser);
-                self.controller.change_view(Box::new(TaskMenu::from(name, v))); 
-                Ok(())                           
-            },            
-        }
     }
 }
