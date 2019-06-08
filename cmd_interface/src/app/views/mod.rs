@@ -5,5 +5,6 @@ pub use self::menu::{
     SplashPage,
     MainMenu,
     ClientMenu,
-    TaskMenu
+    TaskMenu,
+    RecordMenu
 };

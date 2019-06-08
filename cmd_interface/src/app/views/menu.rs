@@ -77,3 +77,36 @@ impl MenuView for TaskMenu {
         print_array(&self.task_names);
     }
 }
+
+
+// Records menu view.
+// Displays records for a given task.
+pub struct RecordMenu {
+    client_name: String,
+    task_name: String,
+    record_names: Vec<String>,
+}
+
+impl RecordMenu {
+    pub fn from(
+        client_name: String, 
+        task_name: String, 
+        record_names: Vec<String>
+        ) -> RecordMenu 
+    {
+        RecordMenu{ client_name, task_name, record_names }
+    }
+}
+
+impl MenuView for RecordMenu {
+    fn display(&self) {
+        println!(
+            "\nThis is the Records Menu for {}'s task {}.", 
+            &self.client_name,
+            &self.task_name
+        );
+        println!("Please select one of the following records:");
+        print_array(&self.record_names);        
+    }
+}
+

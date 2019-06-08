@@ -3,6 +3,7 @@ pub enum State {
     MainMenu,
     ClientMenu,
     TaskMenu(String),
+    RecordMenu(String, String),
 }
 
 pub enum Command {

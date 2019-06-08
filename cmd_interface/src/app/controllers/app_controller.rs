@@ -64,16 +64,34 @@ impl AppController {
             },
             State::ClientMenu => {
                 let v = self.get_owned_names();
-                self.change_parser(Box::new(ClientMenuParser));
+                self.change_parser(Box::new(ClientMenuParser::from(v.clone())));
                 self.change_view(Box::new(ClientMenu::from(v)));
                 Ok(())                
             },
             State::TaskMenu(name) => {
                 let v = self.get_owned_tasks_for_client(name.clone())?;
-                self.change_parser(Box::new(TaskMenuParser));
+                self.change_parser(Box::new(
+                    TaskMenuParser::from(name.clone(), v.clone())
+                ));
                 self.change_view(Box::new(TaskMenu::from(name, v))); 
                 Ok(())                           
-            },            
+            },  
+            State::RecordMenu(client_name, task_name) => {
+                let records = vec![
+                    "1".to_string(), 
+                    "2".to_string(), 
+                    "3".to_string()
+                ];
+                self.change_parser(Box::new(RecordMenuParser::from(
+                    client_name.clone(), 
+                    task_name.clone(),
+                    records.clone()
+                )));
+                self.change_view(Box::new(RecordMenu::from(
+                    client_name, task_name, records
+                )));
+                Ok(())
+            },       
         }
     }
 
