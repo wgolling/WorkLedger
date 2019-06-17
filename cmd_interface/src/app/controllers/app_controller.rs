@@ -33,7 +33,32 @@ impl AppController {
     fn execute(&mut self, command: Command) -> Option<String> {
         match command {
             Command::Quit     => None,
-            Command::Change(state) => {
+            Command::AddClient(client_name) 
+                              => {
+                match self.model.add_client(client_name.clone()) {
+                    Ok(_) => Some(format!("Adding client {}", client_name)),
+                    Err(ErrorType::Duplicate(e)) => {
+                        Some(format!("{}", e))                        
+                    },
+                    Err(ErrorType::NotFound(_)) => {
+                        panic!("Unexpected error type.");
+                    }
+                }
+            },
+            Command::AddTask(client_name, task_name) 
+                              => {
+                match self.model.add_task(client_name.clone(), task_name.clone()) {
+                    Ok(_) => Some(format!("Adding task {} for client {}.", task_name, client_name)),
+                    Err(ErrorType::Duplicate(e)) => {
+                        Some(format!("{}", e))                        
+                    },
+                    Err(ErrorType::NotFound(e)) => {
+                        Some(format!("{}", e))                        
+                    }
+                }
+            },
+            Command::Change(state) 
+                              => {
                 match self.change_state(state) {
                     Ok(_) => Some(String::from("Changing menu.")), 
                     Err(ErrorType::NotFound(e)) => {
@@ -55,18 +80,15 @@ impl AppController {
             State::SplashPage => {
                 self.change_parser(Box::new(SplashPageParser));
                 self.change_view(Box::new(SplashPage));  
-                Ok(())              
             },
             State::MainMenu => {
                 self.change_parser(Box::new(MainMenuParser));
                 self.change_view(Box::new(MainMenu));
-                Ok(())
             },
             State::ClientMenu => {
                 let v = self.get_owned_names();
                 self.change_parser(Box::new(ClientMenuParser::from(v.clone())));
                 self.change_view(Box::new(ClientMenu::from(v)));
-                Ok(())                
             },
             State::TaskMenu(name) => {
                 let v = self.get_owned_tasks_for_client(name.clone())?;
@@ -74,7 +96,6 @@ impl AppController {
                     TaskMenuParser::from(name.clone(), v.clone())
                 ));
                 self.change_view(Box::new(TaskMenu::from(name, v))); 
-                Ok(())                           
             },  
             State::RecordMenu(client_name, task_name) => {
                 let records = vec![
@@ -90,9 +111,11 @@ impl AppController {
                 self.change_view(Box::new(RecordMenu::from(
                     client_name, task_name, records
                 )));
-                Ok(())
-            },       
+            }, 
+            _ => panic!("State not recognized"),      
         }
+        Ok(())              
+
     }
 
 

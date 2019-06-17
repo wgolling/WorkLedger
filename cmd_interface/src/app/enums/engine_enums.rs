@@ -9,6 +9,8 @@ pub enum State {
 pub enum Command {
     Quit,
     Change(State),
+    AddClient(String),
+    AddTask(String, String),
     Print(String),
     Error(String),
 }

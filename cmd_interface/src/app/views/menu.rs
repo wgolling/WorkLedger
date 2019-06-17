@@ -18,7 +18,8 @@ pub struct SplashPage;
 impl MenuView for SplashPage {
     fn display(&self) {
         println!("\nWelcome to William's Work Ledger!\n\n");
-        println!("It manages work records and compiles invoices.");
+        println!("It manages work records and compiles invoices.\n\n");
+        println!("Hit enter.");
     } 
 }
 

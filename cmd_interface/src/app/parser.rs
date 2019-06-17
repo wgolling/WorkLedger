@@ -73,6 +73,7 @@ impl Parser for ClientMenuParser {
         match first_word.to_lowercase().as_str() {
             "hello"     => Command::Print("Hello from Client Menu!".to_string()),
             "quit"      => Command::Quit,
+            "add"       => Command::AddClient(rest_of_input.to_string()),
             "load"      => self.load_client(rest_of_input.to_string()),
             "main"      => Command::Change(State::MainMenu),
             "back"      => Command::Change(State::MainMenu),
@@ -116,6 +117,7 @@ impl Parser for TaskMenuParser {
                 format!("Hello from {}'s Task Menu!", self.client)
             ),
             "quit"      => Command::Quit,
+            "add"       => Command::AddTask(self.client.to_string(), rest_of_input.to_string()),
             "load"      => self.load_task(rest_of_input.to_string()),
             "back"      => Command::Change(State::ClientMenu),
             "main"      => Command::Change(State::MainMenu),
