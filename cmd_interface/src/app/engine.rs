@@ -18,14 +18,16 @@ impl Engine {
     }
 
     // The program's main loop.
-    pub fn run(& mut self) {
+    pub fn run(& self) {
 
+        // Initialize app_controller
+        let mut user = load_user();
         let mut app_controller = AppController::from(
             Box::new(SplashPage), 
-            User::new(),
+            user,
             Box::new(SplashPageParser),
         );
-        load_model(&mut app_controller);
+        // load_model(&mut app_controller);
 
         loop {
             // Display menu.
@@ -51,6 +53,15 @@ impl Engine {
     }
 }
 
+fn load_user() -> User {
+    let mut user = User::new();
+    user.add_client("Client 1".to_string());
+    user.add_task("Client 1".to_string(), "Task 1".to_string());
+    user.add_task("Client 1".to_string(), "Task 2".to_string());
+    user.add_client("Client 3".to_string());
+    user.add_client("Client 2".to_string());     
+    user       
+}
 fn load_model(controller: &mut AppController) {
     controller.add_client("Client 1".to_string());
     controller.add_task("Client 1".to_string(), "Task 1".to_string());
