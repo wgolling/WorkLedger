@@ -10,27 +10,26 @@ use record_keeper::ErrorType;
 
 
 // Engine class that runs the program.
-pub struct Engine {
-    controller: AppController,
-}
-
+pub struct Engine;
 impl Engine {
+    // Constructor
     pub fn new() -> Engine {
-        Engine {
-            controller: AppController::from(
-                Box::new(SplashPage), 
-                User::new(),
-                Box::new(SplashPageParser)),
-        }
+        Engine {}
     }
 
+    // The program's main loop.
     pub fn run(& mut self) {
 
-        self.load_model();
+        let mut app_controller = AppController::from(
+            Box::new(SplashPage), 
+            User::new(),
+            Box::new(SplashPageParser),
+        );
+        load_model(&mut app_controller);
 
         loop {
             // Display menu.
-            self.display();
+            app_controller.display();
 
             // Try to store user input in a String.
             let mut command_string = String::new();
@@ -41,7 +40,7 @@ impl Engine {
             command_string = command_string.trim().to_string();
 
             // Pass the command to the controller.
-            match self.controller.process_command(command_string) {
+            match app_controller.process_command(command_string) {
                 Some(s) => println!("{}", s),
                 None    => break,
             }
@@ -50,16 +49,12 @@ impl Engine {
         }
 
     }
+}
 
-    fn load_model(&mut self) {
-        self.controller.add_client("Client 1".to_string());
-        self.controller.add_task("Client 1".to_string(), "Task 1".to_string());
-        self.controller.add_task("Client 1".to_string(), "Task 2".to_string());
-        self.controller.add_client("Client 3".to_string());
-        self.controller.add_client("Client 2".to_string());        
-    }
-
-    pub fn display(&self) {
-        self.controller.display();
-    }
+fn load_model(controller: &mut AppController) {
+    controller.add_client("Client 1".to_string());
+    controller.add_task("Client 1".to_string(), "Task 1".to_string());
+    controller.add_task("Client 1".to_string(), "Task 2".to_string());
+    controller.add_client("Client 3".to_string());
+    controller.add_client("Client 2".to_string());        
 }
