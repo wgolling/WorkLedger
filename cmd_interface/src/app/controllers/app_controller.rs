@@ -88,14 +88,14 @@ impl AppController {
             State::ClientMenu => {
                 let v = self.get_owned_names();
                 self.change_parser(Box::new(ClientMenuParser::from(v.clone())));
-                self.change_view(Box::new(ClientMenu::from(v)));
+                self.change_view(Box::new(ClientMenu {} ));
             },
             State::TaskMenu(name) => {
                 let v = self.get_owned_tasks_for_client(name.clone())?;
                 self.change_parser(Box::new(
                     TaskMenuParser::from(name.clone(), v.clone())
                 ));
-                self.change_view(Box::new(TaskMenu::from(name, v))); 
+                self.change_view(Box::new(TaskMenu::from(name))); 
             },  
             State::RecordMenu(client_name, task_name) => {
                 let records = vec![
@@ -121,7 +121,7 @@ impl AppController {
 
     // Displaying view.
     pub fn display(&self) {
-        (*self.view).display();
+        (*self.view).display(&self.model);
     }
 
     // Changing state.

@@ -62,10 +62,10 @@ fn load_user() -> User {
     user.add_client("Client 2".to_string());     
     user       
 }
-fn load_model(controller: &mut AppController) {
-    controller.add_client("Client 1".to_string());
-    controller.add_task("Client 1".to_string(), "Task 1".to_string());
-    controller.add_task("Client 1".to_string(), "Task 2".to_string());
-    controller.add_client("Client 3".to_string());
-    controller.add_client("Client 2".to_string());        
-}
+// fn load_model(controller: &mut AppController) {
+//     controller.add_client("Client 1".to_string());
+//     controller.add_task("Client 1".to_string(), "Task 1".to_string());
+//     controller.add_task("Client 1".to_string(), "Task 2".to_string());
+//     controller.add_client("Client 3".to_string());
+//     controller.add_client("Client 2".to_string());        
+// }

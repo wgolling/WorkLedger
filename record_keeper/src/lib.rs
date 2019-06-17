@@ -73,15 +73,17 @@ impl Client {
 
 // public RecordKeeper struct
 pub struct RecordKeeper {
-    clients: HashMap<String, Client>,                                        // A hash table of client neames to client objects.
+    clients:      HashMap<String, Client>,                                   // A hash table of client neames to client objects.
     client_names: Vec<String>,                                               // A sorted list of client names.
+    task_names:   HashMap<String, Vec<String>>,
 }
 impl RecordKeeper {
     /// Returns a new RecordKeeper instance.
     pub fn new() -> RecordKeeper {
         RecordKeeper {
-            clients: HashMap::new(),
+            clients:      HashMap::new(),
             client_names: Vec::new(),
+            task_names:   HashMap::new(),
         }
     }
 
@@ -104,8 +106,9 @@ impl RecordKeeper {
         match client {
             DataType::Client(name) => {
                 self.clients.insert(name.clone(), Client::new(name.clone()));
-                self.client_names.push(name);
+                self.client_names.push(name.clone());
                 self.client_names.sort();
+                self.task_names.insert(name.clone(), Vec::new());
                 Ok(())
             },
             _ => panic!("RecordKeeper::add_validated_client got something that wasn't a client."),
@@ -157,11 +160,13 @@ impl RecordKeeper {
         -> Result<(), ErrorType> 
     {
         match client {
-            DataType::Client(name) => 
-                self
-                .clients
-                .get_mut(&name).unwrap()
-                .add_task(task_name),
+            DataType::Client(name) => {
+                self.clients.get_mut(&name).unwrap().add_task(task_name.clone())?;
+                let mut v = self.task_names.get_mut(&name).unwrap();
+                v.push(task_name.clone());
+                v.sort();
+                Ok(())
+            },
             _ => panic!("RecordKeeper::add_task_for_validated_client got something that wasn't a client."),            
         }
     }
@@ -207,6 +212,23 @@ impl RecordKeeper {
         match self.get_tasks_for_client(client) {
             Ok(ref_vec) => Ok(RecordKeeper::ref_vec_to_owned(ref_vec)),
             Err(e)      => Err(e),
+        }
+    }
+
+    /// Returns a reference to a sorted list of tasks for a given client, if it exists.
+    pub fn get_task_names_ref_for_client(&self, client: String) 
+        -> Result<&Vec<String>, ErrorType> 
+    {
+        let data = self.validate_client_name_for_get(client)?;
+        self.get_task_names_ref_for_validated_client(data)
+    }
+    // getting tasks for a client
+    fn get_task_names_ref_for_validated_client(&self, client: DataType) 
+        -> Result<&Vec<String>, ErrorType> 
+    {
+        match client {
+            DataType::Client(s) => Ok(self.task_names.get(&s).unwrap()),
+            _ => panic!("RecordKeeper::get_task_names_ref_for_validated_client got something that wasn't a client."),
         }
     }
 

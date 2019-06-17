@@ -43,4 +43,10 @@ impl User {
     {
         self.rk.get_owned_tasks_for_client(client_name)
     }
+
+    pub fn get_task_names_ref_for_client(&self, client_name: String)
+        -> Result<&Vec<String>, ErrorType>
+    {
+        self.rk.get_task_names_ref_for_client(client_name)
+    }
 }
