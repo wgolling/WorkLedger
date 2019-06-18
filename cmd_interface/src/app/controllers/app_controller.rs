@@ -27,7 +27,7 @@ impl AppController {
 
     // Processing input.
     pub fn process_command(&mut self, command_string: String) -> Option<String> {
-        self.execute(self.parser.parse(&command_string))
+        self.execute(self.parser.parse(&command_string, &self.model))
     }
 
     fn execute(&mut self, command: Command) -> Option<String> {
@@ -86,14 +86,12 @@ impl AppController {
                 self.change_view(Box::new(MainMenu));
             },
             State::ClientMenu => {
-                let v = self.get_owned_names();
-                self.change_parser(Box::new(ClientMenuParser::from(v.clone())));
+                self.change_parser(Box::new(ClientMenuParser {} ));
                 self.change_view(Box::new(ClientMenu {} ));
             },
             State::TaskMenu(name) => {
-                let v = self.get_owned_tasks_for_client(name.clone())?;
                 self.change_parser(Box::new(
-                    TaskMenuParser::from(name.clone(), v.clone())
+                    TaskMenuParser::from(name.clone())
                 ));
                 self.change_view(Box::new(TaskMenu::from(name))); 
             },  

@@ -1,4 +1,5 @@
 use super::enums::{Command, State};
+use super::models::User;
 
 // Helper function for formatting input.
 fn split_at_first_space(s: &String) -> (&str, &str) {
@@ -13,7 +14,7 @@ fn split_at_first_space(s: &String) -> (&str, &str) {
 
 // Wraps a single parse method that returns a Command variant.
 pub trait Parser {
-    fn parse(&self, s: &String) -> Command;
+    fn parse(&self, s: &String, model: &User) -> Command;
 }
 
 
@@ -21,7 +22,7 @@ pub trait Parser {
 pub struct SplashPageParser;
 
 impl Parser for SplashPageParser {
-    fn parse(&self, _: &String) -> Command {
+    fn parse(&self, _: &String, _: &User) -> Command {
         Command::Change(State::MainMenu)
     }
 }
@@ -32,7 +33,7 @@ impl Parser for SplashPageParser {
 pub struct MainMenuParser;
 
 impl Parser for MainMenuParser {
-    fn parse(&self, s: &String) -> Command {
+    fn parse(&self, s: &String, _: &User) -> Command {
         match (*s).trim().to_lowercase().as_str() {
             "hello"     => Command::Print("Hello from Main Menu!".to_string()),
             "quit"      => Command::Quit,
@@ -47,19 +48,10 @@ impl Parser for MainMenuParser {
 // The Clients menu.
 //
 // Has commands for adding and loading clients, and returning to Main.
-pub struct ClientMenuParser {
-    clients: Vec<String>,
-}
-// specific implementation
+pub struct ClientMenuParser;
 impl ClientMenuParser {
-    pub fn from(clients: Vec<String>) -> ClientMenuParser {
-        ClientMenuParser {
-            clients,
-        }
-    }
-
-    fn load_client(&self, client_name: String) -> Command {
-        if self.clients.contains(&client_name) {
+    fn load_client(&self, client_name: String, model: &User) -> Command {
+        if model.get_client_names_ref().contains(&client_name) {
             Command::Change(State::TaskMenu(client_name))
         } else {
             Command::Error(client_name)
@@ -68,13 +60,13 @@ impl ClientMenuParser {
 }
 // implementation of Parser
 impl Parser for ClientMenuParser {
-    fn parse(&self, s: &String) -> Command {
+    fn parse(&self, s: &String, model: &User) -> Command {
         let (first_word, rest_of_input) = split_at_first_space(s);
         match first_word.to_lowercase().as_str() {
             "hello"     => Command::Print("Hello from Client Menu!".to_string()),
             "quit"      => Command::Quit,
             "add"       => Command::AddClient(rest_of_input.to_string()),
-            "load"      => self.load_client(rest_of_input.to_string()),
+            "load"      => self.load_client(rest_of_input.to_string(), model),
             "main"      => Command::Change(State::MainMenu),
             "back"      => Command::Change(State::MainMenu),
             _           => Command::Error((*s).clone()),
@@ -88,29 +80,32 @@ impl Parser for ClientMenuParser {
 // Has commands for adding tasks for a given client, and returning to Clients.
 pub struct TaskMenuParser{
     client: String,
-    tasks: Vec<String>,
 }
 // specific implementation
 impl TaskMenuParser {
     // Constructor
-    pub fn from(client: String, tasks: Vec<String>) -> TaskMenuParser {
+    pub fn from(client: String) -> TaskMenuParser {
         TaskMenuParser {
             client,
-            tasks,
         }
     }
     // Loading task
-    fn load_task(&self, task_name: String) -> Command {
-        if self.tasks.contains(&task_name) {
-            Command::Change(State::RecordMenu(self.client.clone(), task_name))
-        } else {
-            Command::Error(task_name)
+    fn load_task(&self, task_name: String, model: &User) -> Command {
+        match model.get_task_names_ref_for_client(self.client.clone()) {
+            Ok(v) => {
+                if v.contains(&task_name) {
+                    Command::Change(State::RecordMenu(self.client.clone(), task_name))
+                } else {
+                    Command::Error(task_name)
+                }
+            },
+            Err(_) => Command::Error(self.client.clone()),
         }
     }
 }
 // implementation of Parser
 impl Parser for TaskMenuParser {
-    fn parse(&self, s: &String) -> Command {
+    fn parse(&self, s: &String, model: &User) -> Command {
         let (first_word, rest_of_input) = split_at_first_space(s);
         match first_word.to_lowercase().as_str() {
             "hello"     => Command::Print(
@@ -118,7 +113,7 @@ impl Parser for TaskMenuParser {
             ),
             "quit"      => Command::Quit,
             "add"       => Command::AddTask(self.client.to_string(), rest_of_input.to_string()),
-            "load"      => self.load_task(rest_of_input.to_string()),
+            "load"      => self.load_task(rest_of_input.to_string(), model),
             "back"      => Command::Change(State::ClientMenu),
             "main"      => Command::Change(State::MainMenu),
             _           => Command::Error((*s).clone()),
@@ -139,7 +134,7 @@ impl RecordMenuParser {
     }
 }
 impl Parser for RecordMenuParser {
-    fn parse(&self, s: &String) -> Command {
+    fn parse(&self, s: &String, model: &User) -> Command {
         let (first_word, rest_of_input) = split_at_first_space(s);
         match first_word.to_lowercase().as_str() {
             "hello" => Command::Print(
