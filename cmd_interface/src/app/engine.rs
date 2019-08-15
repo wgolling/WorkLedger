@@ -42,9 +42,10 @@ impl Engine {
             command_string = command_string.trim().to_string();
 
             // Pass the command to the controller.
-            match app_controller.process_command(command_string) {
-                Some(s) => println!("{}", s),
-                None    => break,
+            // If app_controller.process_command returns false,
+            // the program loop is terminated.
+            if !app_controller.process_command(command_string) {
+                break;
             }
 
             // End of loop.

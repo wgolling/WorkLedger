@@ -1,3 +1,27 @@
+
+extern crate chrono;
+use chrono::{DateTime, Datelike, Timelike, Utc};
+
+#[derive(Debug,Deserialize,Serialize)]
+struct Record {
+    client: String,
+    task:   String,
+    start_date: DateTime<Utc>,
+    start_time: DateTime<Utc>,
+    end_date:   DateTime<Utc>,
+    end_time:   DateTime<Utc>,
+    notes: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_working() {
+        assert_eq!(1, 1);
+    }
+}
 // struct Task {}
 // impl Task {
 //     pub fn new() -> Task {

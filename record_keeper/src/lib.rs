@@ -1,8 +1,14 @@
+#[macro_use]
+extern crate serde_derive;
+extern crate csv;
+
 use std::collections::HashMap;
 use std::error::Error;
 
 pub mod error;
 pub use error::{ErrorType, DuplicateError, NotFoundError};
+
+mod record;
 
 
 // public DataType enum 

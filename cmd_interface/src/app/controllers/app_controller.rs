@@ -26,8 +26,14 @@ impl AppController {
     }
 
     // Processing input.
-    pub fn process_command(&mut self, command_string: String) -> Option<String> {
-        self.execute(self.parser.parse(&command_string, &self.model))
+    pub fn process_command(&mut self, command_string: String) -> bool {
+        match self.execute(self.parser.parse(&command_string, &self.model)) {
+            Some(s) => {
+                println!("\n{}\n", s);
+                true
+            },
+            None    => false,
+        }
     }
 
     fn execute(&mut self, command: Command) -> Option<String> {
